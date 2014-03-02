@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+# -*- python -*-
+copyright='''
+socket-relay – Socket relaying daemon
+Copyright © 2014  Mattias Andrée (maandree@member.fsf.org)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
+
+import sys
+
+
+PROGRAM_NAME = 'socket-relay'
+PROGRAM_VERSION = '1.0'
+
+
+conf = '/etc/socket-relay'
+
+
+# Read command line
+opt = lambda *opts : any(map(lambda x : x in sys.argv[1:], list(opts)))
+if opt('-h'. '--help'):
+    print('USAGE: %s [-h | -c | -w | -c | SCRIPT]' % (sys.argv[0]))
+    print()
+    print('    -h --help                 Print this help')
+    print('    -c --copying --copyright  Print copyright information')
+    print('    -w --warranty             Print non-warranty information')
+    print('    -v --version              Print program name and version')
+    sys.exit(0)
+if opt('-c', '--copying', '--copyright'):
+    print(copyright[1 : -1])
+    sys.exit(0)
+if opt('-w', '--warranty'):
+    print(copyright.split('\n\n')[2])
+    sys.exit(0)
+if opt('-v', '--version'):
+    print('%s %s' % (PROGRAM_NAME, PROGRAM_VERSION))
+    sys.exit(0)
+if len(sys.argv > 1):
+    conf = sys.argv[1]
+
+
+# Load configuration script
+g, l = globals(), dict(locals())
+for key in l:
+    g[key] = l[key]
+code = None
+with open(conf, 'rb') as script:
+    code = script.read()
+code = code.decode('utf-8', 'error') + '\n'
+code = compile(code, conf, 'exec')
+exec(code, g)
+
+
