@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import sys
+import socket
+import threading
 
 
 PROGRAM_NAME = 'socket-relay'
@@ -51,6 +53,107 @@ if len(sys.argv > 1):
     conf = sys.argv[1]
 
 
+class RelayTCP:
+    '''
+    TCP relay
+    
+    @variable  connector:(socket, address)→(socket?, fetched)
+                                Function that determinate which server to connect to and connectes to it,
+                                it takes a socket and remote address as input as gives a connected socket,
+                                list of already received packets and thread name as output
+    @variable  port:int         The TCP port to listen on
+    @variable  ip:str           The IP address of the network interface
+    @variable  backlog:int      The server's connection backlog
+    @variable  name:str         The thread's name
+    @variable  buffer_size:int  Default buffer size
+    @variable  socket:socket    The socket
+    @variable  thread:Thread    The thread
+    '''
+    
+    def __init__(self, connector, port, ip = '127.0.0.1', backlog = 5, buffer_size = 4096, name = None):
+        '''
+        Constructor
+        
+        @param  connector:(socket, address)→(socket?, fetched)
+                                 Function that determinate which server to connect to and connectes to it,
+                                 it takes a socket and remote address as input as gives a connected socket,
+                                 list of already received packets and thread name as output
+        @param  port:int         The TCP port to listen on
+        @param  ip:str           The IP address of the network interface
+        @param  backlog:int      The server's connection backlog
+        @param  name:str?        The thread's name, `None` for automatic
+        @param  buffer_size:int  Default buffer size
+        '''
+        self.port, self.ip, self.backlog, self.buffer_size = port, ip, backlog, buffer_size
+        self.name, self.connector = name, connector
+        if self.name is None:
+            self.name = 'TCP %s:%i' % (ip, potr)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.bind((self.ip, self.port))
+        self.thread = threading.Thread(RelayTCP.server_function, args = (self,))
+        self.thread.setDaemon(False)
+        self.thread.start()
+    
+    
+    @staticmethod
+    def connect(remote_host, remote_port, local_ip = None, local_port = 0):
+        '''
+        Creates a TCP client socket connected to TCP server
+        
+        @param  remote_host:str  The remote host
+        @param  remote_port:int  The remote port
+        @param  local_ip:str?    The IP address of the network interface
+        @param  local_port:int   The local port
+        '''
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if (local_ip is not None) and not (local_port == 0):
+            sock.bind((local_ip, local_port))
+        sock.connect((remote_host, remote_port))
+        return sock
+    
+    
+    @staticmethod
+    def server_function(self):
+        '''
+        The server thread's main function
+        '''
+        self.sock.listen(self.backlog)
+        
+        while True:
+            (server_side, address) = self.sock.accept()
+            thread = threading.Thread(RelayTCP.proxy_function, args = (self, server_side, address))
+            thread.setDaemon(False)
+            thread.start()
+    
+    
+    @staticmethod
+    def proxy_function(self, server_side, address):
+        '''
+        The connection threads' main function
+        
+        @param  server_side:socket            The server-side socket
+        @param  address:(host:str, port:int)  The server-side remote host and remote port
+        '''
+        (client_side, fetched) = self.connector(server_side, address)
+        if client_side is None:
+            self.socket.close()
+            return
+        try:
+            for packet in fetched:
+                client_side.send(packet)
+            while True:
+                packet = client_side.recv(self.buffer_size)
+                if packet is None:
+                    break
+                server_side.send(packet)
+        except:
+            pass
+        try:     client_side.close()
+        except:  pass
+        try:     server_side.close()
+        except:  pass
+
+
 # Load configuration script
 g, l = globals(), dict(locals())
 for key in l:
@@ -61,5 +164,4 @@ with open(conf, 'rb') as script:
 code = code.decode('utf-8', 'error') + '\n'
 code = compile(code, conf, 'exec')
 exec(code, g)
-
 
