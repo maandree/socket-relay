@@ -32,7 +32,7 @@ conf = '/etc/socket-relay'
 
 # Read command line
 opt = lambda *opts : any(map(lambda x : x in sys.argv[1:], list(opts)))
-if opt('-h'. '--help'):
+if opt('-h', '--help'):
     print('USAGE: %s [-h | -c | -w | -c | SCRIPT]' % (sys.argv[0]))
     print()
     print('    -h --help                 Print this help')
@@ -49,8 +49,21 @@ if opt('-w', '--warranty'):
 if opt('-v', '--version'):
     print('%s %s' % (PROGRAM_NAME, PROGRAM_VERSION))
     sys.exit(0)
-if len(sys.argv > 1):
+if len(sys.argv) > 1:
     conf = sys.argv[1]
+
+
+
+def reduce(f, items):
+    '''
+    https://en.wikipedia.org/wiki/Fold_(higher-order_function)
+    '''
+    if len(items) < 2:
+        return items
+    rc = items[0]
+    for i in range(1, len(items)):
+        rc = f(rc, items[i])
+    return rc
 
 
 class RelayTCP:
@@ -87,10 +100,10 @@ class RelayTCP:
         self.port, self.ip, self.backlog, self.buffer_size = port, ip, backlog, buffer_size
         self.name, self.connector = name, connector
         if self.name is None:
-            self.name = 'TCP %s:%i' % (ip, potr)
+            self.name = 'TCP %s:%i' % (('[%s]' if ':' in ip else '%s') % (ip), port)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.ip, self.port))
-        self.thread = threading.Thread(RelayTCP.server_function, args = (self,))
+        self.thread = threading.Thread(target = RelayTCP.server_function, args = (self,), name = self.name)
         self.thread.setDaemon(False)
         self.thread.start()
     
@@ -121,7 +134,7 @@ class RelayTCP:
         
         while True:
             (server_side, address) = self.sock.accept()
-            thread = threading.Thread(RelayTCP.proxy_function, args = (self, server_side, address))
+            thread = threading.Thread(target = RelayTCP.proxy_function, args = (self, server_side, address))
             thread.setDaemon(False)
             thread.start()
     
@@ -136,8 +149,24 @@ class RelayTCP:
         '''
         (client_side, fetched) = self.connector(server_side, address)
         if client_side is None:
-            self.socket.close()
+            server_side.close()
             return
+        def proxy_function_():
+            try:
+                while True:
+                    packet = server_side.recv(self.buffer_size)
+                    if packet is None:
+                        break
+                    client_side.send(packet)
+            except:
+                pass
+            try:     client_side.close()
+            except:  pass
+            try:     server_side.close()
+            except:  pass
+        thread = threading.Thread(target = proxy_function_)
+        thread.setDaemon(False)
+        thread.start()
         try:
             for packet in fetched:
                 client_side.send(packet)
