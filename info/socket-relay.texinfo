@@ -51,6 +51,7 @@ Texts. A copy of the license is included in the section entitled
 
 @menu
 * Overview::                        Brief overview of @command{socket-relay}.
+* Invoking::                        Invocation of @command{socket-relay}.
 * GNU Free Documentation License::  Copying and sharing this manual.
 @end menu
 
@@ -58,6 +59,31 @@ Texts. A copy of the license is included in the section entitled
 
 @node Overview
 @chapter Overview
+
+@command{socket-relay} is a framework application for host
+multiplexion. It is written in Python 3 and sources a
+configurations script, @file{/etc/socket-replay} by default.
+It provides code that makes it easy to setup a server that
+relays to another server.
+
+This could for example be used if you have multiple computers
+with web servers on one public IP address but want all computers
+to use port 80. In this case you would configure port forwarding
+on your router to computer A, and setup @command{httpd} on all
+computers to use port 8080. On computer A you would setup
+socket-relay to listen on port 80, read the header of incoming
+requests and relay to the actual host but on port 8080 (and
+modify the header to reflect the change in port.) This is of
+cause easier if computer A does not have a @command{httpd}.
+
+
+@node Invoking
+@chapter Invoking
+
+@command{socket-relay} as a non-self-forking daemon, that
+is started by adding the pathname of the configuration script
+it should run. If not specified it will use
+@file{/etc/socket-relay}.
 
 
 
