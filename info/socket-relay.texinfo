@@ -52,6 +52,7 @@ Texts. A copy of the license is included in the section entitled
 @menu
 * Overview::                        Brief overview of @command{socket-relay}.
 * Invoking::                        Invocation of @command{socket-relay}.
+* Configuration API::               How to write configurations for @command{socket-relay}.
 * GNU Free Documentation License::  Copying and sharing this manual.
 @end menu
 
@@ -77,6 +78,7 @@ modify the header to reflect the change in port.) This is of
 cause easier if computer A does not have a @command{httpd}.
 
 
+
 @node Invoking
 @chapter Invoking
 
@@ -84,6 +86,72 @@ cause easier if computer A does not have a @command{httpd}.
 is started by adding the pathname of the configuration script
 it should run. If not specified it will use
 @file{/etc/socket-relay}.
+
+
+
+@node Configuration API
+@chapter Configuration API
+
+@command{socket-relay} only have built in support for TCP, but
+this does not stop you from using domain sockets or even UDP.
+The latter is however ill-suited for relaying.
+
+@command{socket-relay} provides a class for TCP relaying.
+This class is named @code{RelayTCP}. When an instance of
+this class is constructed the relaying will start
+automatically asynchronously; the constructor can be thought
+of as a function. The @code{RelayTCP} constructor have
+two manditory parameters and four optional parameters:
+
+@table @code
+@item connector
+Function that determinate which server to connect to and
+connectes to it, it takes a socket and remote address as
+input as gives a connected socket, list of already received
+packets and thread name as output. This function may modify
+packets it receives.
+@item port
+The TCP port to listen on.
+@item ip = `127.0.0.1'
+The IP address of the network interface.
+@item backlog = 5
+The server's connection backlog.
+@item buffer_size = 4096
+The receive buffer size.
+@item name = None
+The name of the master thread.
+@end table
+
+@code{RelayTCP} does not name any other threads, but
+you can replace @code{RelayTCP.server_function} and
+@code{RelayTCP.proxy_function} so that it does so.
+
+To connect to a TCP server, you can use the function
+@code{RelayTCP.connect}. It have two manditory parameters
+and two optional parameters:
+
+@table @code
+@item remote_host
+The remote host.
+@item remote_port
+The remote port.
+@item local_ip = None
+The IP address of the network interface.
+@item local_port = 0
+The local port.
+@end table
+
+For your convince a fold method is provided:
+
+@example
+def reduce(f, items):
+    if len(items) < 2:
+        return items
+    rc = items[0]
+    for i in range(1, len(items)):
+        rc = f(rc, items[i])
+    return rc
+@end example
 
 
 
