@@ -94,8 +94,8 @@ class RelayTCP:
         @param  port:int         The TCP port to listen on
         @param  ip:str           The IP address of the network interface
         @param  backlog:int      The server's connection backlog
-        @param  name:str?        The thread's name, `None` for automatic
         @param  buffer_size:int  Default buffer size
+        @param  name:str?        The thread's name, `None` for automatic
         '''
         self.port, self.ip, self.backlog, self.buffer_size = port, ip, backlog, buffer_size
         self.name, self.connector = name, connector
