@@ -11,7 +11,7 @@ install=socket-relay.install
 depends=(python3)
 makedepends=(texinfo)
 source=($url/archive/$pkgver.tar.gz)
-sha256sums=('c525f156709fc33ed9e9bd9a6f6623b9a7b6d9d75ee9cddce8973bb09a7521d1')
+sha256sums=('ea8da3e54882f74ea47e715efe6a5e45e031a5c878a7f167f27a38a44aa6d111')
 
 
 build() {
