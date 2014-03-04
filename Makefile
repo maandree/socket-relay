@@ -16,6 +16,9 @@ COMMAND ?= socket-relay
 PKGNAME ?= socket-relay
 
 
+.PHONY: default
+default: info
+
 .PHONY: all
 all: doc
 
