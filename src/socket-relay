@@ -24,7 +24,7 @@ import threading
 
 
 PROGRAM_NAME = 'socket-relay'
-PROGRAM_VERSION = '1.0'
+PROGRAM_VERSION = '1.1'
 
 
 conf = '/etc/socket-relay'
@@ -143,7 +143,7 @@ class RelayTCP:
             try:
                 while True:
                     packet = server_side.recv(self.buffer_size)
-                    if packet is None:
+                    if (packet is None) or (len(packet) == 0):
                         break
                     client_side.send(packet)
             except:
@@ -160,7 +160,7 @@ class RelayTCP:
                 client_side.send(packet)
             while True:
                 packet = client_side.recv(self.buffer_size)
-                if packet is None:
+                if (packet is None) or (len(packet) == 0):
                     break
                 server_side.send(packet)
         except:
