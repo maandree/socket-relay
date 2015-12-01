@@ -1,15 +1,42 @@
-socket-relay is a framework application for host multiplexion.
-It is written in Python 3 and sources a configurations script,
-/etc/socket-replay by default. It provides code that makes it
-easy to setup a server that relays to another server.
+NAME
+	socket-relay - Host multiplexion
 
-This could for example be used if you have multiple computers
-with web servers on one public IP address but want all computers
-to use port 80. In this case you would configure port forwarding
-on your router to computer A, and setup httpd on all computers to
-use port 8080. On computer A you would setup socket-relay to
-listen on port 80, read the header of incoming requests and
-relay to the actual host but on port 8080 (and modify the header
-to reflect the change in port.) This is of cause easier if
-computer A does not have a httpd.
+SYNOPSIS
+	socket-relay [OPTION | SCRIPT]
+
+DESCRIPTION
+	socket-relay is a framework application for host multiplexion.
+	It is written in Python 3 and sources a configurations script,
+	/etc/socket-replay by default. It provides code that makes it
+	easy to setup a server that relays to another server.
+
+	This could for example be used if you have multiple computers
+	with Web servers on one public IP address but want all computers
+	to use port 80. In this case you would configure port forwarding
+	on your router to computer A, and setup httpd on all computers to
+	use port 8080. On computer A you would setup socket-relay to
+	listen on port 80, read the header of incoming requests and relay
+	to the actual host but on port 8080 (and modify the header to
+	reflect the change in port.) This is of cause easier if computer
+	A does not have a httpd.
+
+OPTIONS
+	-h, --help
+		Print help message and exit.
+
+	-c, --copying, --copyright
+		Print copyright information and exit.
+
+	-w, --warranty
+		Print warranty disclaimer and exit.
+
+	-v, --version
+		Print program name and version and exit.
+
+RATIONALE
+	Sometimes you have multiple servers on your network that
+	want to use the same port.
+
+SEE ALSO
+	relayd(8)
 
