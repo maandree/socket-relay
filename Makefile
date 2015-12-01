@@ -58,7 +58,7 @@ bin/%.ps: doc/info/%.texinfo
 
 
 .PHONY: install
-install: install-base install-info
+install: install-base install-info install-man
 
 .PHONY: install
 install-all: install-base install-doc
@@ -72,7 +72,7 @@ install-command:
 	install -m755 src/socket-relay -- "$(DESTDIR)$(BINDIR)/$(COMMAND)"
 
 .PHONY: install-copyright
-install-copyright:
+install-copyright: install-copying install-license
 
 .PHONY: install-copying
 install-copying:
@@ -85,7 +85,7 @@ install-license:
 	install -m644 LICENSE -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
 
 .PHONY: install-doc
-install-doc: install-info install-pdf install-ps install-dvi
+install-doc: install-info install-pdf install-ps install-dvi install-man
 
 .PHONY: install-info
 install-info: bin/socket-relay.info
@@ -107,6 +107,11 @@ install-dvi: bin/socket-relay.dvi
 	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
 	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
 
+.PHONY: install-man
+install-man: doc/man/socket-relay.1
+	install -dm755 -- "$(DESTDIR)$(MAN1DIR)"
+	install -m644 $< -- "$(DESTDIR)$(MAN1DIR)/$(COMMAND).1"
+
 
 
 .PHONY: uninstall
@@ -119,6 +124,7 @@ uninstall:
 	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
 	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
 	-rm -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
+	-rm -- "$(DESTDIR)$(MAN1DIR)/$(COMMAND).1"
 
 
 
