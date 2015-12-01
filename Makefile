@@ -3,17 +3,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-PREFIX ?= /usr
-BIN ?= /bin
-DATA ?= /share
-BINDIR ?= $(PREFIX)$(BIN)
-DATADIR ?= $(PREFIX)$(DATA)
-DOCDIR ?= $(DATADIR)/doc
-INFODIR ?= $(DATADIR)/info
-LICENSEDIR ?= $(DATADIR)/licenses
+PREFIX = /usr
+BIN = /bin
+DATA = /share
+BINDIR = $(PREFIX)$(BIN)
+DATADIR = $(PREFIX)$(DATA)
+DOCDIR = $(DATADIR)/doc
+INFODIR = $(DATADIR)/info
+MANDIR = $(DATADIR)/man
+MAN1DIR = $(MANDIR)/man1
+LICENSEDIR = $(DATADIR)/licenses
 
-COMMAND ?= socket-relay
-PKGNAME ?= socket-relay
+COMMAND = socket-relay
+PKGNAME = socket-relay
 
 
 .PHONY: default
@@ -22,35 +24,36 @@ default: info
 .PHONY: all
 all: doc
 
-
 .PHONY: doc
 doc: info pdf dvi ps
 
 .PHONY: info
-info: socket-relay.info
-%.info: info/%.texinfo
-	makeinfo "$<"
+info: bin/socket-relay.info
+bin/%.info: doc/info/%.texinfo
+	@mkdir -p bin
+	makeinfo $<
+	mv $*.info $@
 
 .PHONY: pdf
-pdf: socket-relay.pdf
-%.pdf: info/%.texinfo
-	@mkdir -p obj/pdf
-	cd obj/pdf ; yes X | texi2pdf ../../$<
-	mv obj/pdf/$@ $@
+pdf: bin/socket-relay.pdf
+bin/%.pdf: doc/info/%.texinfo
+	@mkdir -p obj/pdf bin
+	cd obj/pdf ; texi2pdf ../../$< < /dev/null
+	mv obj/pdf/$*.pdf $@
 
 .PHONY: dvi
-dvi: socket-relay.dvi
-%.dvi: info/%.texinfo
-	@mkdir -p obj/dvi
-	cd obj/dvi ; yes X | $(TEXI2DVI) ../../$<
-	mv obj/dvi/$@ $@
+dvi: bin/socket-relay.dvi
+bin/%.dvi: doc/info/%.texinfo
+	@mkdir -p obj/dvi bin
+	cd obj/dvi ; $(TEXI2DVI) ../../$< < /dev/null
+	mv obj/dvi/$*.dvi $@
 
 .PHONY: ps
-ps: socket-relay.ps
-%.ps: info/%.texinfo
-	@mkdir -p obj/ps
-	cd obj/ps ; yes X | texi2pdf --ps ../../$<
-	mv obj/ps/$@ $@
+ps: bin/socket-relay.ps
+bin/%.ps: doc/info/%.texinfo
+	@mkdir -p obj/ps bin
+	cd obj/ps ; texi2pdf --ps ../../$< < /dev/null
+	mv obj/ps/$*.ps $@
 
 
 
@@ -61,38 +64,46 @@ install: install-base install-info
 install-all: install-base install-doc
 
 .PHONY: install-base
-install-base: install-command install-license
+install-base: install-command install-copyright
 
 .PHONY: install-command
 install-command:
 	install -dm755 -- "$(DESTDIR)$(BINDIR)"
 	install -m755 src/socket-relay -- "$(DESTDIR)$(BINDIR)/$(COMMAND)"
 
+.PHONY: install-copyright
+install-copyright:
+
+.PHONY: install-copying
+install-copying:
+	install -dm755 -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
+	install -m644 COPYING -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
+
 .PHONY: install-license
 install-license:
 	install -dm755 -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
-	install -m644 COPYING LICENSE -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
+	install -m644 LICENSE -- "$(DESTDIR)$(LICENSEDIR)/$(PKGNAME)"
 
 .PHONY: install-doc
 install-doc: install-info install-pdf install-ps install-dvi
 
 .PHONY: install-info
-install-info: socket-relay.info
+install-info: bin/socket-relay.info
 	install -dm755 -- "$(DESTDIR)$(INFODIR)"
 	install -m644 $< -- "$(DESTDIR)$(INFODIR)/$(PKGNAME).info"
 
 .PHONY: install-pdf
-install-pdf: socket-relay.pdf
+install-pdf: bin/socket-relay.pdf
 	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
 	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).pdf"
 
 .PHONY: install-ps
-install-ps: socket-relay.ps
+install-ps: bin/socket-relay.ps
 	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
 	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).ps"
 
 .PHONY: install-dvi
-install-dvi: socket-relay.dvi
+install-dvi: bin/socket-relay.dvi
 	install -dm755 -- "$(DESTDIR)$(DOCDIR)"
 	install -m644 $< -- "$(DESTDIR)$(DOCDIR)/$(PKGNAME).dvi"
 
@@ -113,5 +124,5 @@ uninstall:
 
 PHONY: all
 clean:
-	-rm -r obj socket-relay.{info,pdf,ps,dvi}
+	-rm -r bin obj
 
